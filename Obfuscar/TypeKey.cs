@@ -53,9 +53,7 @@ namespace Obfuscar
             this.Fullname = !string.IsNullOrEmpty(this.Namespace) && Namespace != type.Namespace ? this.Namespace + "." + Name : Name;
 
             // Our name should be the same as the Cecil's name. This is important to the Match method.
-            GenericInstanceType gi = type as GenericInstanceType;
-            type.DeclaringType = type.DeclaringType; // Hack: Update fullname of nested type
-            if (this.Fullname != type.ToString() && (gi == null || this.Fullname != gi.ElementType.FullName))
+            if (this.Fullname != type.ToString() && (!(type is GenericInstanceType gi) || this.Fullname != gi.ElementType.FullName))
                 throw new InvalidOperationException(string.Format("Type names do not match: \"{0}\" != \"{1}\"",
                     this.Fullname, type.ToString()));
 
@@ -97,13 +95,11 @@ namespace Obfuscar
 
         public bool Matches(TypeReference type)
         {
-            // Remove generic type parameters and compare full names
-            var instanceType = type as GenericInstanceType;
-            if (instanceType == null)
-                type.DeclaringType = type.DeclaringType; // Hack: Update full name
-            string typefullname = type.ToString();
-            if (instanceType != null)
+            string typefullname;
+            if (type is GenericInstanceType instanceType)
                 typefullname = instanceType.ElementType.ToString();
+            else
+                typefullname = type.ToString();
             return typefullname == Fullname;
         }
 

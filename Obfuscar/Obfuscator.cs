@@ -384,19 +384,16 @@ namespace Obfuscar
             // find references, rename them, then rename the field itself
             foreach (AssemblyInfo reference in info.ReferencedBy)
             {
-                for (int i = 0; i < reference.UnrenamedReferences.Count;)
+                for (int i = 0; i < reference.UnrenamedFieldReferences.Count;)
                 {
-                    FieldReference member = reference.UnrenamedReferences[i] as FieldReference;
-                    if (member != null)
+                    FieldReference member = reference.UnrenamedFieldReferences[i];
+                    if (fieldKey.Matches(member))
                     {
-                        if (fieldKey.Matches(member))
-                        {
-                            member.Name = newName;
-                            reference.UnrenamedReferences.RemoveAt(i);
+                        member.Name = newName;
+                        reference.UnrenamedFieldReferences.RemoveAt(i);
 
-                            // since we removed one, continue without the increment
-                            continue;
-                        }
+                        // since we removed one, continue without the increment
+                        continue;
                     }
 
                     i++;
@@ -636,14 +633,14 @@ namespace Obfuscar
                 return result;
 
             foreach (var doc in xamlFiles)
-            foreach (XElement child in doc.Descendants())
-            {
-                var classAttribute = child.Attributes().FirstOrDefault(node => node.Name.LocalName == "Class");
-                if (classAttribute == null)
-                    continue;
+                foreach (XElement child in doc.Descendants())
+                {
+                    var classAttribute = child.Attributes().FirstOrDefault(node => node.Name.LocalName == "Class");
+                    if (classAttribute == null)
+                        continue;
 
-                result.Add(classAttribute.Value);
-            }
+                    result.Add(classAttribute.Value);
+                }
 
             return result;
         }
@@ -861,19 +858,16 @@ namespace Obfuscar
             // find references, rename them, then rename the property itself
             foreach (AssemblyInfo reference in info.ReferencedBy)
             {
-                for (int i = 0; i < reference.UnrenamedReferences.Count;)
+                for (int i = 0; i < reference.UnrenamedPropertyReferences.Count;)
                 {
-                    PropertyReference member = reference.UnrenamedReferences[i] as PropertyReference;
-                    if (member != null)
+                    var member = reference.UnrenamedPropertyReferences[i];
+                    if (propertyKey.Matches(member))
                     {
-                        if (propertyKey.Matches(member))
-                        {
-                            member.Name = newName;
-                            reference.UnrenamedReferences.RemoveAt(i);
+                        member.Name = newName;
+                        reference.UnrenamedPropertyReferences.RemoveAt(i);
 
-                            // since we removed one, continue without the increment
-                            continue;
-                        }
+                        // since we removed one, continue without the increment
+                        continue;
                     }
 
                     i++;
@@ -1253,28 +1247,24 @@ namespace Obfuscar
 
             foreach (AssemblyInfo reference in references)
             {
-                for (int i = 0; i < reference.UnrenamedReferences.Count;)
+                for (int i = 0; i < reference.UnrenamedMethodReferences.Count;)
                 {
-                    MethodReference member = reference.UnrenamedReferences[i] as MethodReference;
-                    if (member != null)
+                    var member = reference.UnrenamedMethodReferences[i];
+                    if (methodKey.Matches(member))
                     {
-                        if (methodKey.Matches(member))
+                        if (member is GenericInstanceMethod generic)
                         {
-                            var generic = member as GenericInstanceMethod;
-                            if (generic == null)
-                            {
-                                member.Name = newName;
-                            }
-                            else
-                            {
-                                generics.Add(generic);
-                            }
-
-                            reference.UnrenamedReferences.RemoveAt(i);
-
-                            // since we removed one, continue without the increment
-                            continue;
+                            generics.Add(generic);
                         }
+                        else
+                        {
+                            member.Name = newName;
+                        }
+
+                        reference.UnrenamedMethodReferences.RemoveAt(i);
+
+                        // since we removed one, continue without the increment
+                        continue;
                     }
 
                     i++;

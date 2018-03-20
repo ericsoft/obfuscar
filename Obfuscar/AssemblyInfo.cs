@@ -55,7 +55,9 @@ namespace Obfuscar
         private readonly PredicateCollection<MethodKey> skipStringHiding = new PredicateCollection<MethodKey>();
         private readonly PredicateCollection<MethodKey> forceStringHiding = new PredicateCollection<MethodKey>();
         private List<TypeReference> unrenamedTypeReferences;
-        private List<MemberReference> unrenamedReferences;
+        private List<FieldReference> unrenamedFieldReferences;
+        private List<PropertyReference> unrenamedPropertyReferences;
+        private List<MethodReference> unrenamedMethodReferences;
         private string filename;
         private AssemblyDefinition definition;
         private string name;
@@ -361,7 +363,10 @@ namespace Obfuscar
         /// </summary>
         internal void Init()
         {
-            unrenamedReferences = new List<MemberReference>();
+            unrenamedFieldReferences = new List<FieldReference>();
+            unrenamedPropertyReferences = new List<PropertyReference>();
+            unrenamedMethodReferences = new List<MethodReference>();
+
             var items = getMemberReferences();
             foreach (MemberReference member in items)
             {
@@ -369,7 +374,22 @@ namespace Obfuscar
                 // MethodReference mr = member as MethodReference;
                 // FieldReference fr = member as FieldReference;
                 if (project.Contains(member.DeclaringType))
-                    unrenamedReferences.Add(member);
+                {
+                    switch (member)
+                    {
+                        case FieldReference fieldReference:
+                            unrenamedFieldReferences.Add(fieldReference);
+                            break;
+
+                        case PropertyReference propertyReference:
+                            unrenamedPropertyReferences.Add(propertyReference);
+                            break;
+
+                        case MethodReference methodReference:
+                            unrenamedMethodReferences.Add(methodReference);
+                            break;
+                    }
+                }
             }
 
             HashSet<TypeReference> typerefs = new HashSet<TypeReference>();
@@ -719,14 +739,33 @@ namespace Obfuscar
             }
         }
 
-        public List<MemberReference> UnrenamedReferences
+        public List<FieldReference> UnrenamedFieldReferences
         {
             get
             {
                 CheckInitialized();
-                return unrenamedReferences;
+                return unrenamedFieldReferences;
             }
         }
+
+        public List<PropertyReference> UnrenamedPropertyReferences
+        {
+            get
+            {
+                CheckInitialized();
+                return unrenamedPropertyReferences;
+            }
+        }
+
+        public List<MethodReference> UnrenamedMethodReferences
+        {
+            get
+            {
+                CheckInitialized();
+                return unrenamedMethodReferences;
+            }
+        }
+
 
         public List<TypeReference> UnrenamedTypeReferences
         {

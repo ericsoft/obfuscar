@@ -65,14 +65,10 @@ namespace Obfuscar
 
         public MethodDefinition Method { get; }
 
-        public bool Matches(MemberReference member)
+        public bool Matches(MethodReference member)
         {
-            MethodReference methodRef = member as MethodReference;
-            if (methodRef != null)
-            {
-                if (TypeKey.Matches(methodRef.DeclaringType))
-                    return MethodMatch(Method, methodRef);
-            }
+            if (TypeKey.Matches(member.DeclaringType))
+                return MethodMatch(Method, member);
 
             return false;
         }
